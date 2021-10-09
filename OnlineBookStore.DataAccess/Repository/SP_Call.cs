@@ -31,7 +31,7 @@ namespace OnlineBookStore.DataAccess.Repository
             using (SqlConnection sqlCon = new SqlConnection(ConnectionString))
             {
                 sqlCon.Open();
-                sqlCon.Execute(procedureName, commandType: System.Data.CommandType.StoredProcedure);
+                sqlCon.Execute(procedureName, param, commandType: System.Data.CommandType.StoredProcedure);
             }
         }
 
@@ -40,7 +40,7 @@ namespace OnlineBookStore.DataAccess.Repository
             using (SqlConnection sqlCon = new SqlConnection(ConnectionString))
             {
                 sqlCon.Open();
-                return sqlCon.Query<T>(procedureName, commandType: System.Data.CommandType.StoredProcedure);
+                return sqlCon.Query<T>(procedureName, param, commandType: System.Data.CommandType.StoredProcedure);
             }
         }
 
@@ -67,7 +67,7 @@ namespace OnlineBookStore.DataAccess.Repository
             using (SqlConnection sqlCon = new SqlConnection(ConnectionString))
             {
                 sqlCon.Open();
-                var value = sqlCon.Query<T>(procedureName, commandType: System.Data.CommandType.StoredProcedure);
+                var value = sqlCon.Query<T>(procedureName, param, commandType: System.Data.CommandType.StoredProcedure);
                 return (T)Convert.ChangeType(value.FirstOrDefault(), typeof(T));
             }
         }
@@ -77,7 +77,7 @@ namespace OnlineBookStore.DataAccess.Repository
             using (SqlConnection sqlCon = new SqlConnection(ConnectionString))
             {
                 sqlCon.Open();
-                return (T)Convert.ChangeType(sqlCon.ExecuteScalar<T>(procedureName, commandType: System.Data.CommandType.StoredProcedure), typeof(T));
+                return (T)Convert.ChangeType(sqlCon.ExecuteScalar<T>(procedureName, param, commandType: System.Data.CommandType.StoredProcedure), typeof(T));
             }
         }
     }
