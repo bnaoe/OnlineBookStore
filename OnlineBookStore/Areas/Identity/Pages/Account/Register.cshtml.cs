@@ -194,7 +194,7 @@ namespace OnlineBookStore.Areas.Identity.Pages.Account
                         else
                         {
                             //admin is registering a new user
-                            return RedirectToAction("Index", "User", new { Area = "Admin" });
+                            return RedirectToAction("Index", "ApplicationUser", new { Area = "Admin" });
                         }
                     }
                 }

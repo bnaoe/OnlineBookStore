@@ -10,6 +10,8 @@ namespace OnlineBookStore.DataAccess.Repository.IRepository
     {
         T Get(int id);
 
+        T Get(string id);
+
         IEnumerable<T> GetAll(
             Expression<Func<T, bool>> filter = null,
             Func<IQueryable<T>, IOrderedQueryable<T>> orderby = null,
