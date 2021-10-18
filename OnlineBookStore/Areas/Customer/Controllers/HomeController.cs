@@ -1,12 +1,16 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using OnlineBookStore.DataAccess.Repository.IRepository;
 using OnlineBookStore.Models;
 using OnlineBookStore.Models.ViewModels;
+using OnlineBookStore.Utility;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace OnlineBookStore.Areas.Customer.Controllers
@@ -27,8 +31,96 @@ namespace OnlineBookStore.Areas.Customer.Controllers
         public IActionResult Index()
         {
             IEnumerable<Product> productList = _unitOfWork.Product.GetAll(includeProperties: "Category,CoverType");
+            
+            var claimsIdentity = (ClaimsIdentity)User.Identity;
+            var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
+
+            if (claim != null)
+            {
+                var count = _unitOfWork.ShoppingCart
+                   .GetAll(s => s.ApplicationUserId == claim.Value)
+                   .ToList().Count();
+
+                HttpContext.Session.SetInt32(StaticDetails.sshoppingCart, count);
+
+
+            }
+
             return View(productList);
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize]
+        public IActionResult Details(ShoppingCart cartObject)
+        {
+            cartObject.Id = 0;
+            if(ModelState.IsValid)
+            {
+                //then add to cart
+                var claimsIdentity = (ClaimsIdentity)User.Identity;
+                var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
+                cartObject.ApplicationUserId = claim.Value;
+
+                ShoppingCart cartInDb = _unitOfWork.ShoppingCart
+                    .GetFirstOrDefault(c => c.ApplicationUserId == cartObject.ApplicationUserId && c.ProductId == cartObject.ProductId,
+                    includeProperties:"Product");
+
+                if (cartInDb ==null)
+                {
+                    _unitOfWork.ShoppingCart.Add(cartObject);
+
+                }
+                else
+                {
+                    cartInDb.Count += cartObject.Count;
+                    _unitOfWork.ShoppingCart.Update(cartInDb);
+                }
+                _unitOfWork.Save();
+
+                var count = _unitOfWork.ShoppingCart
+                    .GetAll(s => s.ApplicationUserId == cartObject.ApplicationUserId)
+                    .ToList().Count();
+
+                // HttpContext.Session.SetObject(StaticDetails.sshoppingCart, cartObject);
+                //HttpContext.Session.GetObject<ShoppingCart>(StaticDetails.sshoppingCart);
+                HttpContext.Session.SetInt32(StaticDetails.sshoppingCart, count);
+                return RedirectToAction(nameof(Index));
+
+            }
+
+            else
+            {
+                var productInDd = _unitOfWork.Product
+              .GetFirstOrDefault(p => p.Id == cartObject.ProductId, includeProperties: "Category,CoverType");
+                ShoppingCart cartObj = new ShoppingCart()
+                {
+                    Product = productInDd,
+                    ProductId = productInDd.Id
+                };
+
+
+                return View(cartObj);
+            }
+
+          
+        }
+
+        public IActionResult Details(int id)
+        {
+
+            var productInDd = _unitOfWork.Product
+                .GetFirstOrDefault(p => p.Id == id, includeProperties: "Category,CoverType");
+            ShoppingCart cartObj = new ShoppingCart()
+            {
+                Product = productInDd,
+                ProductId = productInDd.Id
+            };
+           
+
+            return View(cartObj);
+        }
+
 
         public IActionResult Privacy()
         {

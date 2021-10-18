@@ -5,8 +5,8 @@ using System.Text;
 
 namespace OnlineBookStore.DataAccess.Repository.IRepository
 {
-    public interface ICategoryRepository: IRepository<Category>
+    public interface IOrderDetailsRepository : IRepository<OrderDetails>
     {
-        void Update(Category category);
+        void Update(OrderDetails obj);
     }
 }

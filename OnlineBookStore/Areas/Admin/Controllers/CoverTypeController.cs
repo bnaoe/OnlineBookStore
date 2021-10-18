@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OnlineBookStore.DataAccess.Repository.IRepository;
 using OnlineBookStore.Models;
@@ -11,6 +12,8 @@ using System.Threading.Tasks;
 namespace OnlineBookStore.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Roles = StaticDetails.Role_Admin)]
+
     public class CoverTypeController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;

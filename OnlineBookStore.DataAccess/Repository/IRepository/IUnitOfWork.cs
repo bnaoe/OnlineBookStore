@@ -16,6 +16,12 @@ namespace OnlineBookStore.DataAccess.Repository.IRepository
 
         IApplicationUserRepository ApplicationUser { get; }
 
+        IShoppingCartRepository ShoppingCart { get; }
+
+        IOrderHeaderRepository OrderHeader { get; }
+
+        IOrderDetailsRepository OrderDetails { get; }
+
         ISP_Call SP_Call { get; }
 
         void Save();

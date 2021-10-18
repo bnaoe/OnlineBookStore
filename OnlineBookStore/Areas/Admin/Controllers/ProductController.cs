@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using OnlineBookStore.DataAccess.Repository.IRepository;
 using OnlineBookStore.Models;
 using OnlineBookStore.Models.ViewModels;
+using OnlineBookStore.Utility;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -13,6 +15,7 @@ using System.Threading.Tasks;
 namespace OnlineBookStore.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Roles = StaticDetails.Role_Admin)]
     public class ProductController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
