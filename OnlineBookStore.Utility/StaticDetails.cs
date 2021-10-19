@@ -36,7 +36,6 @@ namespace OnlineBookStore.Utility
                     return price100;
                 }
             }
-
         }
 
         public static string ConvertToRawHtml(string source)

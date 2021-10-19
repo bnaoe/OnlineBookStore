@@ -37,6 +37,7 @@ namespace OnlineBookStore.Utility
                 Credentials = new NetworkCredential(fromMail, fromPassword),
                 EnableSsl = true,
             };
+           
             smtpClient.Send(message);
         }
 /*        private Task Execute(string sendGridKey, string subject, string message, string email)

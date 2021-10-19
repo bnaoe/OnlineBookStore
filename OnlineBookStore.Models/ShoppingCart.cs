@@ -20,7 +20,7 @@ namespace OnlineBookStore.Models
         public ApplicationUser ApplicationUser { get; set; }
 
         public int ProductId { get; set; }
-        [ForeignKey("PdoductId")]
+        [ForeignKey("ProductId")]
 
         public Product Product { get; set; }
 

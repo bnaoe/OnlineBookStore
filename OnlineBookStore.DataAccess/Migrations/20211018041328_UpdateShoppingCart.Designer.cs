@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OnlineBookStore.DataAccess.Data;
 
 namespace OnlineBookStore.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20211018041328_UpdateShoppingCart")]
+    partial class UpdateShoppingCart
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -446,6 +448,9 @@ namespace OnlineBookStore.DataAccess.Migrations
                     b.Property<int>("Count")
                         .HasColumnType("int");
 
+                    b.Property<int?>("PdoductId")
+                        .HasColumnType("int");
+
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
 
@@ -453,7 +458,7 @@ namespace OnlineBookStore.DataAccess.Migrations
 
                     b.HasIndex("ApplicationUserId");
 
-                    b.HasIndex("ProductId");
+                    b.HasIndex("PdoductId");
 
                     b.ToTable("ShoppingCarts");
                 });
@@ -592,9 +597,7 @@ namespace OnlineBookStore.DataAccess.Migrations
 
                     b.HasOne("OnlineBookStore.Models.Product", "Product")
                         .WithMany()
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("PdoductId");
 
                     b.Navigation("ApplicationUser");
 
