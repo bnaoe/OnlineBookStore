@@ -30,7 +30,7 @@ function loadDataTable() {
     });
 }
 
-function Delte(url){
+function Delete(url){
     swal.fire({
         title: "Are you sure you want to delete?",
         text: "This will delete the data permanently.",

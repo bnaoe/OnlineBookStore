@@ -33,9 +33,9 @@ namespace OnlineBookStore.Areas.Admin.Controllers
 
         #region API CALLS
         [HttpGet]
-        public IActionResult GetAll()
+        public async Task<IActionResult> GetAll()
         {
-            var users = _unitOfWork.ApplicationUser.GetAll(includeProperties: "Company");
+            var users = await _unitOfWork.ApplicationUser.GetAllAsync(includeProperties: "Company");
             foreach (var user in users)
             {
                 user.Role = _userManager.GetRolesAsync(user).Result.FirstOrDefault();
@@ -51,9 +51,9 @@ namespace OnlineBookStore.Areas.Admin.Controllers
             return Json(new { data = users });
         }
         [HttpPost]
-        public IActionResult LockUnlock([FromBody] string id)
+        public async Task<IActionResult> LockUnlock([FromBody] string id)
         {
-            var objInDb = _unitOfWork.ApplicationUser.Get(id);
+            var objInDb = await _unitOfWork.ApplicationUser.GetAsync(id);
             if (objInDb == null)
             {
                 return Json(new { success = false, message = "Error while locking/unlocking." });

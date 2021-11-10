@@ -8,7 +8,7 @@ using System.Text;
 
 namespace OnlineBookStore.DataAccess.Repository
 {
-    public class OrderHeaderRepository: Repository<OrderHeader>, IOrderHeaderRepository
+    public class OrderHeaderRepository: RepositoryAsync<OrderHeader>, IOrderHeaderRepository
     {
         private readonly ApplicationDbContext _db;
 

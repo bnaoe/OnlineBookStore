@@ -27,7 +27,7 @@ namespace OnlineBookStore.Areas.Admin.Controllers
             return View();
         }
 
-        public IActionResult FormCompany(int? id)
+        public async Task<IActionResult> FormCompany(int? id)
         {
             Company company = new Company();
             //to create
@@ -37,7 +37,7 @@ namespace OnlineBookStore.Areas.Admin.Controllers
             }
 
             //to update
-            company = _unitOfWork.Company.Get(id.GetValueOrDefault());
+            company = await _unitOfWork.Company.GetAsync(id.GetValueOrDefault());
             if(company==null)
             {
                 return NotFound();
@@ -48,13 +48,13 @@ namespace OnlineBookStore.Areas.Admin.Controllers
         #region API CALLS
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult FormCompany(Company company)
+        public async Task<IActionResult> FormCompany(Company company)
         {
             if (ModelState.IsValid)
             {
                 if(company.Id==0)
                 {
-                    _unitOfWork.Company.Add(company);
+                    await _unitOfWork.Company.AddAsync(company);
                     
                 }else
                 {
@@ -67,21 +67,21 @@ namespace OnlineBookStore.Areas.Admin.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetAll()
+        public async Task<IActionResult> GetAll()
         {
-            var allObj = _unitOfWork.Company.GetAll();
+            var allObj = await _unitOfWork.Company.GetAllAsync();
             return Json(new { data = allObj });
         }
 
         [HttpDelete]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            var objInDb = _unitOfWork.Company.Get(id);
+            var objInDb = await _unitOfWork.Company.GetAsync(id);
             if (objInDb == null)
             {
                 return Json(new { success = false, message = "Error on delete." });
             }
-            _unitOfWork.Company.Remove(objInDb);
+            await _unitOfWork.Company.RemoveAsync(objInDb);
             _unitOfWork.Save();
             return Json(new { success = true, message = "Deleted." });
         }

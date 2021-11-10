@@ -14,6 +14,7 @@ using Microsoft.Extensions.Logging;
 using OnlineBookStore.DataAccess.Repository.IRepository;
 using Microsoft.AspNetCore.Http;
 using OnlineBookStore.Utility;
+using OnlineBookStore.Models;
 
 namespace OnlineBookStore.Areas.Identity.Pages.Account
 {
@@ -91,11 +92,12 @@ namespace OnlineBookStore.Areas.Identity.Pages.Account
                 // This doesn't count login failures towards account lockout
                 // To enable password failures to trigger account lockout, set lockoutOnFailure: true
                 var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+                
                 if (result.Succeeded)
                 {
-                    var user = _unitOfWork.ApplicationUser.GetFirstOrDefault(u => u.Email == Input.Email);
-
-                    int count = _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == user.Id).Count();
+                    var user = await _unitOfWork.ApplicationUser.GetFirstOrDefaultAsync(u => u.Email == Input.Email);
+                    IEnumerable<ShoppingCart> ShoppingCartList = await _unitOfWork.ShoppingCart.GetAllAsync(u => u.ApplicationUserId == user.Id);
+                    int count = ShoppingCartList.Count();
                     HttpContext.Session.SetInt32(StaticDetails.sshoppingCart, count);
 
                     _logger.LogInformation("User logged in.");

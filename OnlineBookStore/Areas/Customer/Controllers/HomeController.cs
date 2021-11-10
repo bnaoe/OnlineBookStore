@@ -28,17 +28,18 @@ namespace OnlineBookStore.Areas.Customer.Controllers
             _unitOfWork = unitOfWork;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            IEnumerable<Product> productList = _unitOfWork.Product.GetAll(includeProperties: "Category,CoverType");
+            IEnumerable<Product> productList = await _unitOfWork.Product.GetAllAsync(includeProperties: "Category,CoverType");
             
             var claimsIdentity = (ClaimsIdentity)User.Identity;
             var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
 
             if (claim != null)
             {
-                var count = _unitOfWork.ShoppingCart
-                   .GetAll(s => s.ApplicationUserId == claim.Value)
+                IEnumerable<ShoppingCart> ShoppingCartList = await _unitOfWork.ShoppingCart
+                   .GetAllAsync(s => s.ApplicationUserId == claim.Value);
+               var count = ShoppingCartList
                    .ToList().Count();
 
                 HttpContext.Session.SetInt32(StaticDetails.sshoppingCart, count);
@@ -52,7 +53,7 @@ namespace OnlineBookStore.Areas.Customer.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
-        public IActionResult Details(ShoppingCart cartObject)
+        public async Task<IActionResult> Details(ShoppingCart cartObject)
         {
             cartObject.Id = 0;
             if(ModelState.IsValid)
@@ -62,13 +63,13 @@ namespace OnlineBookStore.Areas.Customer.Controllers
                 var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
                 cartObject.ApplicationUserId = claim.Value;
 
-                ShoppingCart cartInDb = _unitOfWork.ShoppingCart
-                    .GetFirstOrDefault(c => c.ApplicationUserId == cartObject.ApplicationUserId && c.ProductId == cartObject.ProductId,
+                ShoppingCart cartInDb = await _unitOfWork.ShoppingCart
+                    .GetFirstOrDefaultAsync(c => c.ApplicationUserId == cartObject.ApplicationUserId && c.ProductId == cartObject.ProductId,
                     includeProperties:"Product");
 
                 if (cartInDb ==null)
                 {
-                    _unitOfWork.ShoppingCart.Add(cartObject);
+                    await _unitOfWork.ShoppingCart.AddAsync(cartObject);
 
                 }
                 else
@@ -78,8 +79,9 @@ namespace OnlineBookStore.Areas.Customer.Controllers
                 }
                 _unitOfWork.Save();
 
-                var count = _unitOfWork.ShoppingCart
-                    .GetAll(s => s.ApplicationUserId == cartObject.ApplicationUserId)
+                IEnumerable<ShoppingCart> ShoppingCartList = await _unitOfWork.ShoppingCart
+                    .GetAllAsync(s => s.ApplicationUserId == cartObject.ApplicationUserId);
+                var count = ShoppingCartList 
                     .ToList().Count();
 
                 // HttpContext.Session.SetObject(StaticDetails.sshoppingCart, cartObject);
@@ -91,8 +93,8 @@ namespace OnlineBookStore.Areas.Customer.Controllers
 
             else
             {
-                var productInDd = _unitOfWork.Product
-              .GetFirstOrDefault(p => p.Id == cartObject.ProductId, includeProperties: "Category,CoverType");
+                var productInDd = await _unitOfWork.Product
+              .GetFirstOrDefaultAsync(p => p.Id == cartObject.ProductId, includeProperties: "Category,CoverType");
                 ShoppingCart cartObj = new ShoppingCart()
                 {
                     Product = productInDd,
@@ -106,11 +108,11 @@ namespace OnlineBookStore.Areas.Customer.Controllers
           
         }
 
-        public IActionResult Details(int id)
+        public async Task<IActionResult> Details(int id)
         {
 
-            var productInDd = _unitOfWork.Product
-                .GetFirstOrDefault(p => p.Id == id, includeProperties: "Category,CoverType");
+            var productInDd = await _unitOfWork.Product
+                .GetFirstOrDefaultAsync(p => p.Id == id, includeProperties: "Category,CoverType");
             ShoppingCart cartObj = new ShoppingCart()
             {
                 Product = productInDd,

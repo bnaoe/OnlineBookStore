@@ -8,7 +8,7 @@ using System.Text;
 
 namespace OnlineBookStore.DataAccess.Repository
 {
-    public class CompanyRepository : Repository<Company>, ICompanyRepository
+    public class CompanyRepository : RepositoryAsync<Company>, ICompanyRepository
     {
         private readonly ApplicationDbContext _db;
 

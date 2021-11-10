@@ -5,7 +5,7 @@ using System.Text;
 
 namespace OnlineBookStore.DataAccess.Repository.IRepository
 {
-    public interface ICompanyRepository: IRepository<Company>
+    public interface ICompanyRepository: IRepositoryAsync<Company>
     {
         void Update(Company company);
     }

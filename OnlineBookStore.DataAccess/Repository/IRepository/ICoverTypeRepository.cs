@@ -5,7 +5,7 @@ using System.Text;
 
 namespace OnlineBookStore.DataAccess.Repository.IRepository
 {
-    public interface ICoverTypeRepository: IRepository<CoverType>
+    public interface ICoverTypeRepository: IRepositoryAsync<CoverType>
     {
         void Update(CoverType coverType);
     }

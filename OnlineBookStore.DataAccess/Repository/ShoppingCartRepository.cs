@@ -8,7 +8,7 @@ using System.Text;
 
 namespace OnlineBookStore.DataAccess.Repository
 {
-    public class ShoppingCartRepository: Repository<ShoppingCart>, IShoppingCartRepository
+    public class ShoppingCartRepository: RepositoryAsync<ShoppingCart>, IShoppingCartRepository
     {
         private readonly ApplicationDbContext _db;
 

@@ -5,7 +5,7 @@ using System.Text;
 
 namespace OnlineBookStore.DataAccess.Repository.IRepository
 {
-    public interface IOrderHeaderRepository : IRepository<OrderHeader>
+    public interface IOrderHeaderRepository : IRepositoryAsync<OrderHeader>
     {
         void Update(OrderHeader obj);
     }

@@ -8,7 +8,7 @@ using System.Text;
 
 namespace OnlineBookStore.DataAccess.Repository
 {
-    public class CoverTypeRepository: Repository<CoverType>, ICoverTypeRepository
+    public class CoverTypeRepository: RepositoryAsync<CoverType>, ICoverTypeRepository
     {
         private readonly ApplicationDbContext _db;
 

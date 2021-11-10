@@ -5,7 +5,7 @@ using System.Text;
 
 namespace OnlineBookStore.DataAccess.Repository.IRepository
 {
-    public interface IShoppingCartRepository : IRepository<ShoppingCart>
+    public interface IShoppingCartRepository : IRepositoryAsync<ShoppingCart>
     {
         void Update(ShoppingCart obj);
     }

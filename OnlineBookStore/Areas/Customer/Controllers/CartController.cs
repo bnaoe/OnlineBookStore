@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Options;
 using OnlineBookStore.DataAccess.Repository.IRepository;
 using OnlineBookStore.Models;
 using OnlineBookStore.Models.ViewModels;
@@ -15,6 +16,8 @@ using System.Security.Claims;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
+using Twilio;
+using Twilio.Rest.Api.V2010.Account;
 
 namespace OnlineBookStore.Areas.Customer.Controllers
 {
@@ -24,18 +27,21 @@ namespace OnlineBookStore.Areas.Customer.Controllers
         private readonly IUnitOfWork _unitOfWork;
         private readonly IEmailSender _emailSender;
         private readonly UserManager<IdentityUser> _userManager;
+        private TwilioSettings _twilioOptions { get; set; }
 
         [BindProperty]
         public ShoppingCartVM ShoppingCartVM { get; set; }
    
-        public CartController(IUnitOfWork unitOfWork, IEmailSender emailSender, UserManager<IdentityUser> userManager)
+        public CartController(IUnitOfWork unitOfWork, IEmailSender emailSender, 
+            UserManager<IdentityUser> userManager, IOptions<TwilioSettings> twilioOptions)
         {
             _unitOfWork = unitOfWork;
             _emailSender = emailSender;
             _userManager = userManager;
+            _twilioOptions = twilioOptions.Value;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
             var claimsIdentity = (ClaimsIdentity)User.Identity;
             var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
@@ -43,11 +49,11 @@ namespace OnlineBookStore.Areas.Customer.Controllers
             ShoppingCartVM = new ShoppingCartVM()
             {
                 OrderHeader = new Models.OrderHeader(),
-                CartList = _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == claim.Value, includeProperties: "Product")
+                CartList = await _unitOfWork.ShoppingCart.GetAllAsync(u => u.ApplicationUserId == claim.Value, includeProperties: "Product")
             };
             ShoppingCartVM.OrderHeader.OrderTotal = 0;
-            ShoppingCartVM.OrderHeader.ApplicationUser = _unitOfWork.ApplicationUser
-                                                        .GetFirstOrDefault(u => u.Id == claim.Value,
+            ShoppingCartVM.OrderHeader.ApplicationUser = await _unitOfWork.ApplicationUser
+                                                        .GetFirstOrDefaultAsync(u => u.Id == claim.Value,
                                                         includeProperties: "Company");
 
             foreach (var list in ShoppingCartVM.CartList)
@@ -72,7 +78,7 @@ namespace OnlineBookStore.Areas.Customer.Controllers
         {
             var claimsIdentity = (ClaimsIdentity)User.Identity;
             var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
-            var user = _unitOfWork.ApplicationUser.GetFirstOrDefault(u => u.Id == claim.Value);
+            var user = await _unitOfWork.ApplicationUser.GetFirstOrDefaultAsync(u => u.Id == claim.Value);
 
             if (user == null)
             {
@@ -93,10 +99,10 @@ namespace OnlineBookStore.Areas.Customer.Controllers
             return RedirectToAction("Index");
         }
 
-        public IActionResult Plus(int cartId)
+        public async Task<IActionResult> Plus(int cartId)
         {
-            var cart = _unitOfWork.ShoppingCart
-                .GetFirstOrDefault(c => c.Id == cartId, includeProperties: "Product");
+            var cart = await _unitOfWork.ShoppingCart
+                .GetFirstOrDefaultAsync(c => c.Id == cartId, includeProperties: "Product");
 
             cart.Count += 1;
             cart.Price = StaticDetails
@@ -106,16 +112,17 @@ namespace OnlineBookStore.Areas.Customer.Controllers
             return RedirectToAction(nameof(Index));
             
         }
-        public IActionResult Minus(int cartId)
+        public async Task<IActionResult> Minus(int cartId)
         {
-            var cart = _unitOfWork.ShoppingCart
-                .GetFirstOrDefault(c => c.Id == cartId, includeProperties: "Product");
+            var cart = await _unitOfWork.ShoppingCart
+                .GetFirstOrDefaultAsync(c => c.Id == cartId, includeProperties: "Product");
 
             if (cart.Count == 1)
             {
-                var cnt = _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == cart.ApplicationUserId)
+                IEnumerable<ShoppingCart> ShoppingCartList = await _unitOfWork.ShoppingCart.GetAllAsync(u => u.ApplicationUserId == cart.ApplicationUserId);
+                var cnt = ShoppingCartList 
                    .ToList().Count();
-                _unitOfWork.ShoppingCart.Remove(cart);
+                await _unitOfWork.ShoppingCart.RemoveAsync(cart);
                 _unitOfWork.Save();
                 HttpContext.Session.SetInt32(StaticDetails.sshoppingCart, cnt - 1); 
             }
@@ -132,14 +139,15 @@ namespace OnlineBookStore.Areas.Customer.Controllers
 
         }
 
-        public IActionResult Remove(int cartId)
+        public async Task<IActionResult> Remove(int cartId)
         {
-            var cart = _unitOfWork.ShoppingCart
-                .GetFirstOrDefault(c => c.Id == cartId, includeProperties: "Product");
+            var cart = await _unitOfWork.ShoppingCart
+                .GetFirstOrDefaultAsync(c => c.Id == cartId, includeProperties: "Product");
+            IEnumerable<ShoppingCart> ShoppingCartList = await _unitOfWork.ShoppingCart.GetAllAsync(u => u.ApplicationUserId == cart.ApplicationUserId);
 
-            var cnt = _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == cart.ApplicationUserId)
+            var cnt = ShoppingCartList
                    .ToList().Count();
-                _unitOfWork.ShoppingCart.Remove(cart);
+                await _unitOfWork.ShoppingCart.RemoveAsync(cart);
                 _unitOfWork.Save();
                 HttpContext.Session.SetInt32(StaticDetails.sshoppingCart, cnt - 1);
            
@@ -147,7 +155,7 @@ namespace OnlineBookStore.Areas.Customer.Controllers
 
         }
 
-        public IActionResult Summary()
+        public async Task<IActionResult> Summary()
         {
             var claimsIdentity = (ClaimsIdentity)User.Identity;
             var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
@@ -155,12 +163,12 @@ namespace OnlineBookStore.Areas.Customer.Controllers
             ShoppingCartVM = new ShoppingCartVM()
             {
                 OrderHeader = new Models.OrderHeader(),
-                CartList = _unitOfWork.ShoppingCart.GetAll(c=>c.ApplicationUserId == claim.Value
+                CartList = await _unitOfWork.ShoppingCart.GetAllAsync(c=>c.ApplicationUserId == claim.Value
                                                             , includeProperties: "Product")
             };
 
-            ShoppingCartVM.OrderHeader.ApplicationUser = _unitOfWork.ApplicationUser
-                                                        .GetFirstOrDefault(c => c.Id == claim.Value
+            ShoppingCartVM.OrderHeader.ApplicationUser = await _unitOfWork.ApplicationUser
+                                                        .GetFirstOrDefaultAsync(c => c.Id == claim.Value
                                                         , includeProperties: "Company");
 
             foreach (var list in ShoppingCartVM.CartList)
@@ -183,24 +191,24 @@ namespace OnlineBookStore.Areas.Customer.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [ActionName("Summary")]
-        public IActionResult SummaryPost(string stripeToken)
+        public async Task<IActionResult> SummaryPost(string stripeToken)
         {
             var claimsIdentity = (ClaimsIdentity)User.Identity;
             var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
 
-            ShoppingCartVM.OrderHeader.ApplicationUser = _unitOfWork.ApplicationUser
-                                                       .GetFirstOrDefault(c => c.Id == claim.Value
+            ShoppingCartVM.OrderHeader.ApplicationUser = await _unitOfWork.ApplicationUser
+                                                       .GetFirstOrDefaultAsync(c => c.Id == claim.Value
                                                        , includeProperties: "Company");
 
-            ShoppingCartVM.CartList = _unitOfWork.ShoppingCart
-                                    .GetAll(C => C.ApplicationUserId == claim.Value, includeProperties: "Product");
+            ShoppingCartVM.CartList = await _unitOfWork.ShoppingCart
+                                    .GetAllAsync(C => C.ApplicationUserId == claim.Value, includeProperties: "Product");
 
             ShoppingCartVM.OrderHeader.PaymentStatus = StaticDetails.PaymentStatusPending;
             ShoppingCartVM.OrderHeader.OrderStatus = StaticDetails.StatusPending;
             ShoppingCartVM.OrderHeader.ApplicationUserId = claim.Value;
             ShoppingCartVM.OrderHeader.OrderDate = DateTime.Now;
 
-            _unitOfWork.OrderHeader.Add(ShoppingCartVM.OrderHeader);
+            await _unitOfWork.OrderHeader.AddAsync(ShoppingCartVM.OrderHeader);
             _unitOfWork.Save();
 
             List<OrderDetails> orderDetailsList = new List<OrderDetails>();
@@ -219,7 +227,7 @@ namespace OnlineBookStore.Areas.Customer.Controllers
                 _unitOfWork.OrderDetails.Add(orderDetails);
             }
 
-            _unitOfWork.ShoppingCart.RemoveRange(ShoppingCartVM.CartList);
+            await _unitOfWork.ShoppingCart.RemoveRangeAsync(ShoppingCartVM.CartList);
             _unitOfWork.Save();
             HttpContext.Session.SetInt32(StaticDetails.sshoppingCart, 0);
 
@@ -263,8 +271,22 @@ namespace OnlineBookStore.Areas.Customer.Controllers
             return RedirectToAction("ORderConfirmation", "Cart", new { id = ShoppingCartVM.OrderHeader.Id });
         }
 
-        public IActionResult OrderConfirmation(int id)
+        public async Task<IActionResult> OrderConfirmation(int id)
         {
+            OrderHeader orderHeader = await _unitOfWork.OrderHeader.GetFirstOrDefaultAsync(u => u.Id == id);
+            TwilioClient.Init(_twilioOptions.AccountSid, _twilioOptions.Auth);
+            try
+            {
+                var message = MessageResource.Create(
+                    body: "Order Placed on Online Book Strore. Your Order Id:" + id,
+                    from: new Twilio.Types.PhoneNumber(_twilioOptions.PhoneNumber),
+                    to: new Twilio.Types.PhoneNumber(orderHeader.PhoneNumber)
+                    );
+            }
+            catch(Exception ex)
+            {
+
+            }
             return View(id);
         }
     }

@@ -5,7 +5,7 @@ using System.Text;
 
 namespace OnlineBookStore.DataAccess.Repository.IRepository
 {
-    public interface IApplicationUserRepository : IRepository<ApplicationUser>
+    public interface IApplicationUserRepository : IRepositoryAsync<ApplicationUser>
     {
     }
 }

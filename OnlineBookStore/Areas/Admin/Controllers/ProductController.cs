@@ -32,17 +32,20 @@ namespace OnlineBookStore.Areas.Admin.Controllers
             return View();
         }
 
-        public IActionResult FormProduct(int? id)
+        public async Task<IActionResult> FormProduct(int? id)
         {
+            IEnumerable<Category> CatList = await _unitOfWork.Category.GetAllAsync();
+            IEnumerable<CoverType> CovTypeList = await _unitOfWork.CoverType.GetAllAsync();
             ProductVM productVM = new ProductVM()
             {
                 Product = new Product(),
-                CategoryList = _unitOfWork.Category.GetAll().Select(i => new SelectListItem
+                CategoryList = CatList.Select(i => new SelectListItem
                 {
                     Text = i.Name,
                     Value = i.Id.ToString()
                 }),
-                CoverTypeList = _unitOfWork.CoverType.GetAll().Select(i => new SelectListItem
+
+                CoverTypeList = CovTypeList.Select(i => new SelectListItem
                 {
                     Text = i.Name,
                     Value = i.Id.ToString()
@@ -56,7 +59,7 @@ namespace OnlineBookStore.Areas.Admin.Controllers
             }
 
             //to update
-            productVM.Product = _unitOfWork.Product.Get(id.GetValueOrDefault());
+            productVM.Product = await _unitOfWork.Product.GetAsync(id.GetValueOrDefault());
             if(productVM.Product == null)
             {
                 return NotFound();
@@ -67,23 +70,25 @@ namespace OnlineBookStore.Areas.Admin.Controllers
         #region API CALLS
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult FormProduct(ProductVM productVM)
+        public async Task<IActionResult> FormProduct(ProductVM productVM)
         {
             if (!ModelState.IsValid)
             {
-                productVM.CategoryList = _unitOfWork.Category.GetAll().Select(i => new SelectListItem
+                IEnumerable<Category> CatList = await _unitOfWork.Category.GetAllAsync();
+                IEnumerable<CoverType> CovTypeList = await _unitOfWork.CoverType.GetAllAsync();
+                productVM.CategoryList = CatList.Select(i => new SelectListItem
                 {
                     Text = i.Name,
                     Value = i.Id.ToString()
                 });
-                productVM.CoverTypeList = _unitOfWork.CoverType.GetAll().Select(i => new SelectListItem
+                productVM.CoverTypeList = CovTypeList.Select(i => new SelectListItem
                 {
                     Text = i.Name,
                     Value = i.Id.ToString()
                 });
                 if (productVM.Product.Id != 0)
                 {
-                    productVM.Product = _unitOfWork.Product.Get(productVM.Product.Id);
+                    productVM.Product = await _unitOfWork.Product.GetAsync(productVM.Product.Id);
                 }
                 return View(productVM);
 
@@ -117,7 +122,7 @@ namespace OnlineBookStore.Areas.Admin.Controllers
                     //update when they do not change the image
                     if (productVM.Product.Id != 0)
                     {
-                        Product objFromDb = _unitOfWork.Product.Get(productVM.Product.Id);
+                        Product objFromDb = await _unitOfWork.Product.GetAsync(productVM.Product.Id);
                         productVM.Product.ImageUrl = objFromDb.ImageUrl;
                     }
                 }
@@ -125,7 +130,7 @@ namespace OnlineBookStore.Areas.Admin.Controllers
 
                 if (productVM.Product.Id == 0)
                 {
-                    _unitOfWork.Product.Add(productVM.Product);
+                    await _unitOfWork.Product.AddAsync(productVM.Product);
 
                 }
                 else
@@ -138,16 +143,16 @@ namespace OnlineBookStore.Areas.Admin.Controllers
 
 
         [HttpGet]
-        public IActionResult GetAll()
+        public async Task<IActionResult> GetAll()
         {
-            var allObj = _unitOfWork.Product.GetAll(includeProperties:"Category,CoverType");
+            var allObj = await _unitOfWork.Product.GetAllAsync(includeProperties:"Category,CoverType");
             return Json(new { data = allObj });
         }
 
         [HttpDelete]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            var objInDb = _unitOfWork.Product.Get(id);
+            var objInDb = await _unitOfWork.Product.GetAsync(id);
             if (objInDb == null)
             {
                 return Json(new { success = false, message = "Error on delete." });
@@ -158,7 +163,7 @@ namespace OnlineBookStore.Areas.Admin.Controllers
             {
                 System.IO.File.Delete(imagePath);
             }
-            _unitOfWork.Product.Remove(objInDb);
+            await _unitOfWork.Product.RemoveAsync(objInDb);
             _unitOfWork.Save();
             return Json(new { success = true, message = "Deleted." });
         }

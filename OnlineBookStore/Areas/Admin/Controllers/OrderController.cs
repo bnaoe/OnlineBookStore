@@ -29,11 +29,11 @@ namespace OnlineBookStore.Areas.Admin.Controllers
             return View();
         }
 
-        public IActionResult Details(int id)
+        public async Task<IActionResult> Details(int id)
         {
             OrderVM = new OrderDetailsVM()
             {
-                OrderHeader = _unitOfWork.OrderHeader.GetFirstOrDefault(u => u.Id == id,
+                OrderHeader = await _unitOfWork.OrderHeader.GetFirstOrDefaultAsync(u => u.Id == id,
                 includeProperties: "ApplicationUser"),
                 OrderDetails = _unitOfWork.OrderDetails.GetAll(o => o.OrderId == id, includeProperties: "Product")
             };
@@ -44,9 +44,9 @@ namespace OnlineBookStore.Areas.Admin.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [ActionName("Details")]
-        public IActionResult Details(string stripeToken)
+        public async Task<IActionResult> Details(string stripeToken)
         {
-            OrderHeader orderHeader = _unitOfWork.OrderHeader.GetFirstOrDefault(u => u.Id == OrderVM.OrderHeader.Id, includeProperties:"ApplicationUser");
+            OrderHeader orderHeader = await _unitOfWork.OrderHeader.GetFirstOrDefaultAsync(u => u.Id == OrderVM.OrderHeader.Id, includeProperties:"ApplicationUser");
             if (stripeToken != null)
             {
                 //process payment
@@ -81,9 +81,9 @@ namespace OnlineBookStore.Areas.Admin.Controllers
         }
 
         [Authorize(Roles = StaticDetails.Role_Admin+","+StaticDetails.Role_Employee)]
-        public IActionResult StartProcessing(int id)
+        public async Task<IActionResult> StartProcessing(int id)
         {
-            OrderHeader orderHeader = _unitOfWork.OrderHeader.GetFirstOrDefault(u => u.Id == id);
+            OrderHeader orderHeader = await _unitOfWork.OrderHeader.GetFirstOrDefaultAsync(u => u.Id == id);
             orderHeader.OrderStatus = StaticDetails.StatusInProcess;
 
             _unitOfWork.Save();
@@ -92,9 +92,9 @@ namespace OnlineBookStore.Areas.Admin.Controllers
 
         [HttpPost]
         [Authorize(Roles = StaticDetails.Role_Admin + "," + StaticDetails.Role_Employee)]
-        public IActionResult ShipOrder()
+        public async Task<IActionResult> ShipOrder()
         {
-            OrderHeader orderHeader = _unitOfWork.OrderHeader.GetFirstOrDefault(u => u.Id == OrderVM.OrderHeader.Id);
+            OrderHeader orderHeader = await _unitOfWork.OrderHeader.GetFirstOrDefaultAsync(u => u.Id == OrderVM.OrderHeader.Id);
             orderHeader.TrackingNumber = OrderVM.OrderHeader.TrackingNumber;
             orderHeader.Carrier = OrderVM.OrderHeader.Carrier;
             orderHeader.OrderStatus = StaticDetails.StatusShipped;
@@ -105,9 +105,9 @@ namespace OnlineBookStore.Areas.Admin.Controllers
         }
 
         [Authorize(Roles = StaticDetails.Role_Admin + "," + StaticDetails.Role_Employee)]
-        public IActionResult CancelOrder(int id)
+        public async Task<IActionResult> CancelOrder(int id)
         {
-            OrderHeader orderHeader = _unitOfWork.OrderHeader.GetFirstOrDefault(u => u.Id == id);
+            OrderHeader orderHeader = await _unitOfWork.OrderHeader.GetFirstOrDefaultAsync(u => u.Id == id);
             if(orderHeader.PaymentStatus == StaticDetails.StatusApproved)
             {
                 var options = new RefundCreateOptions
@@ -135,7 +135,7 @@ namespace OnlineBookStore.Areas.Admin.Controllers
 
         #region API CALLS
         [HttpGet]
-        public IActionResult GetOrderList(string status)
+        public async Task<IActionResult> GetOrderList(string status)
         {
             var claimsIdentity = (ClaimsIdentity)User.Identity;
             var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
@@ -144,11 +144,11 @@ namespace OnlineBookStore.Areas.Admin.Controllers
 
             if (User.IsInRole(StaticDetails.Role_Admin) || User.IsInRole(StaticDetails.Role_Employee))
             {
-                orderHeaderList = _unitOfWork.OrderHeader.GetAll(includeProperties: "ApplicationUser");
+                orderHeaderList = await _unitOfWork.OrderHeader.GetAllAsync(includeProperties: "ApplicationUser");
             }
             else
             {
-                orderHeaderList = _unitOfWork.OrderHeader.GetAll(
+                orderHeaderList = await _unitOfWork.OrderHeader.GetAllAsync(
                                         u => u.ApplicationUserId == claim.Value,
                                         includeProperties: "ApplicationUser");
             }
