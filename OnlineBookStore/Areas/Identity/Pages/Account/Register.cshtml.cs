@@ -183,7 +183,7 @@ namespace OnlineBookStore.Areas.Identity.Pages.Account
 
                     }
 
-                    await _userManager.AddToRoleAsync(user, StaticDetails.Role_Admin);
+                    //await _userManager.AddToRoleAsync(user, StaticDetails.Role_Admin);
 
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                     code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));

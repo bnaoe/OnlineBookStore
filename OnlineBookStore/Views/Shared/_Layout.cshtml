@@ -36,28 +36,16 @@
                                     <a class="dropdown-item" asp-area="Admin" asp-controller="Category" asp-action="Index">Categories</a>
                                     <a class="dropdown-item" asp-area="Admin" asp-controller="CoverType" asp-action="Index">Cover Types</a>
                                     <a class="dropdown-item" asp-area="Admin" asp-controller="Product" asp-action="Index">Product</a>
-                                    <div class="dropdown-divider"></div>
-                                    <a class="dropdown-item" href="#">Something else here</a>
                                 </div>
                             </li>
                         }
                         @if (User.IsInRole(StaticDetails.Role_Admin) || User.IsInRole(StaticDetails.Role_Employee))
                         {
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle text-white" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    Company
-                                </a>
-                                <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                    <a class="dropdown-item" asp-area="Admin" asp-controller="Company" asp-action="Index">Company</a>
-                                </div>
+                            <li class="nav-item">
+                              <a class="nav-link text-white" asp-area="Admin" asp-controller="Company" asp-action="Index">Company</a>  
                             </li>
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle text-white" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    User
-                                </a>
-                                <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                    <a class="dropdown-item" asp-area="Admin" asp-controller="ApplicationUser" asp-action="Index">User</a>
-                                </div>
+                            <li class="nav-item">
+                              <a class="nav-link text-white" asp-area="Admin" asp-controller="ApplicationUser" asp-action="Index">User</a>
                             </li>
                         }
 
@@ -73,12 +61,12 @@
                                 }
                             </a>
                         </li>
-                        @if (User.IsInRole(StaticDetails.Role_Admin) || User.IsInRole(StaticDetails.Role_Employee))
+                        @*removed before publishing@if (User.IsInRole(StaticDetails.Role_Admin) || User.IsInRole(StaticDetails.Role_Employee))
                          {
                             <li class="nav-item">
                                 <a class="nav-link text-white" asp-area="Admin" asp-controller="BrainTree" asp-action="Index">BrainTree</a>
                             </li>
-                         }
+                         }*@
                     </ul>
 
                     <partial name="_LoginPartial" />
@@ -91,6 +79,29 @@
             @RenderBody()
         </main>
     </div>
+   
+<div class="fab-container">
+    <span class="fab-label">Demo Application Instructions here</span>
+    <div class="fab fab-icon-holder">
+        <i class="fas fa-info-circle"></i>
+    </div>
+    <ul class="fab-options">
+        <li>
+            <span class="fab-label">How to use the application</span>
+            <div class="fab-icon-holder">
+                <i class="fas fa-question-circle" onClick="How()"></i>
+            </div>
+        </li>
+        <li>
+            <span class="fab-label">Contact Info</span>
+            <div class="fab-icon-holder">
+                <i class="fas fa-envelope-open-text" onClick="Contact()"></i>
+            </div>
+        </li>
+    </ul>
+
+</div>
+
 
     <footer class="border-top footer text-muted">
         <div class="container">
@@ -105,6 +116,7 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10.10.1/dist/sweetalert2.all.min.js"></script>
     <script src="https://kit.fontawesome.com/e19c476714.js"></script>
+    <script src="~/js/Information.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
@@ -114,6 +126,6 @@
             $(".nav").find(".active").removeClass("active");
             $(this).parent().addClass("active");
         });
+       
     </script>
-
 }
